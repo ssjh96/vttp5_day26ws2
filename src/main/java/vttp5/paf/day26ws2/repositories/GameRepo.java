@@ -20,6 +20,7 @@ public class GameRepo
     public static final String F_GID = "gid";
     public static final String F_NAME = "name";
     public static final String F_OID = "_id";
+    public static final String F_RANKING = "ranking";
 
      /*
         db.getCollection("games")
@@ -69,6 +70,38 @@ public class GameRepo
         return template.count(query, C_GAMES);
         // return template.count(query, Long.class);
 
+     }
+
+     /*
+        db.getCollection("games")
+            .find()
+            .projection({
+                "gid" : 1,
+                "name" : 1,
+                "_id" : 0 
+            })
+            .sort({"ranking": 1})
+            .limit(10)
+            .skip(15)
+     */
+
+     public List<Document> findGamesByRanking(Integer limit, Integer offset)
+     {        
+        Query query = new Query(); // empty query with no filtering criteria
+
+        // Set projections
+        query.fields()
+            .include(F_GID)
+            .include(F_NAME)
+            .include(F_RANKING)
+            .exclude(F_OID);
+        
+        // Add sorting on "gid" in ascending order
+        query.with(Sort.by(Sort.Direction.ASC, F_RANKING));
+        query.limit(limit);
+        query.skip(offset);
+
+        return template.find(query, Document.class, C_GAMES);
      }
     
 }

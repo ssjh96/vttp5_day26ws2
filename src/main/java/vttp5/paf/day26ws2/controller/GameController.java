@@ -27,4 +27,15 @@ public class GameController {
 
         return ResponseEntity.ok(jResults.toString());
     }
+
+    @GetMapping(path = "/games/ranks", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> getGamesByRank(
+        @RequestParam (value = "limit", defaultValue = "25") String limit,
+        @RequestParam (value = "offset", defaultValue = "0") String offset) 
+    {
+        JsonObject jResults = gameService.getGamesByRanking(limit, offset);
+
+        return ResponseEntity.ok(jResults.toString());
+    }
+    
 }

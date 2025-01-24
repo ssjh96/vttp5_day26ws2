@@ -78,4 +78,56 @@ public class GameService {
         
         return jResultObj;
     }
+
+
+    public JsonObject getGamesByRanking(String limit, String offset)
+    {
+        // Games array
+        JsonArrayBuilder jsonGamesArrayBuilder = Json.createArrayBuilder();
+
+        List<Document> docListOfGames = gameRepo.findGamesByRanking(Integer.parseInt(limit), Integer.parseInt(offset));
+
+        for (Document docGames : docListOfGames)
+        {
+            JsonReader jReader = Json.createReader(new StringReader(docGames.toJson()));
+            JsonObject jsonGame = jReader.readObject();
+
+            jsonGamesArrayBuilder.add(jsonGame);
+        }
+        
+        // return jsonGamesArrayBuilder.build();
+
+        JsonArray jGamesArray = jsonGamesArrayBuilder.build();
+
+
+
+        // Total count
+        long totalGames = gameRepo.gamesCount();
+
+
+
+        // Current timestamp
+        // Get current date and time
+        LocalDateTime now = LocalDateTime.now();
+
+        // Define the format 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        // Format current date and time
+        String formattedNow = now.format(formatter);
+
+
+
+        // Build result jsonObject
+        JsonObject jResultObj =  Json.createObjectBuilder()
+                                    .add("games", jGamesArray)
+                                    .add("offset", offset)
+                                    .add("limit", limit)
+                                    .add("total", totalGames)
+                                    .add("timestamp", formattedNow)
+                                    .build();
+        
+        
+        return jResultObj;
+    }
 }

@@ -1,8 +1,11 @@
 package vttp5.paf.day26ws2.repositories;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -40,7 +43,10 @@ public class GameRepo
         // Criteria criteria = Criteria.where(null);
         
         // Query query = new Query().with(Sort.by(Sort.Direction.ASC, "gid")); // empty query with no filtering criteria, but with sorting on "gid in asc"
+
         Query query = new Query(); // empty query with no filtering criteria, but with sorting on "gid in asc"
+
+        // Query query = new Query().with(Sort.by(Sort.Direction.ASC, F_GID)).limit(limit).skip(offset);
 
         // Set projections
         query.fields()
@@ -53,7 +59,9 @@ public class GameRepo
         query.limit(limit);
         query.skip(offset);
 
-        return template.find(query, Document.class, C_GAMES);
+        List<Document> games = template.find(query, Document.class, C_GAMES);
+
+        return games;
      }
 
 
@@ -65,10 +73,11 @@ public class GameRepo
 
      public Long gamesCount()
      {
-        Query query = new Query();
+        // Query query = new Query();
 
-        return template.count(query, C_GAMES);
-        // return template.count(query, Long.class);
+        // return template.count(query, C_GAMES);
+        
+        return template.getCollection(C_GAMES).countDocuments();
 
      }
 
@@ -103,5 +112,41 @@ public class GameRepo
 
         return template.find(query, Document.class, C_GAMES);
      }
+
+
+    /*
+        
+     */
+     public Optional<Document> findGameById(String gameId)
+     {
+        try
+        {
+            // Object Id takes in a String representation of a HexString because its human readabale and convenient
+            ObjectId gameObjectId = new ObjectId(gameId);
+            Criteria criteria = Criteria.where(F_OID).is(gameObjectId);
+
+            Query query = Query.query(criteria);
+
+            Document result = template.findOne(query, Document.class, C_GAMES);
+
+            // ObjectId id = result.getObjectId("_id");
+
+            return Optional.ofNullable(result);
+        }
+        catch (IllegalArgumentException e)
+        {
+            // In case of invalid hexstring, handle invalid ObjectId format
+            System.out.println("Error: " + e.getMessage());
+            return Optional.empty();
+        }
+        
+     }
+
+    // Formatting object id manually will not work because MongoDD java driver expects an ObjectId type not a formatted String
+    //  private String formattedObjectId(String gameId)
+    //  {
+    //     String formattedObjectId = "'ObjectId(" + gameId + "')";
+    //     return formattedObjectId;
+    //  }
     
 }
